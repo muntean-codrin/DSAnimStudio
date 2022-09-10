@@ -2,8 +2,10 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +29,60 @@ namespace DSAnimStudio.TaeEditor
         public TaeTransport(TaeEditorScreen mainScreen)
         {
             MainScreen = mainScreen;
+
+            
+            Buttons.Add(new TransportButton()
+            {
+                GetDebugText = () => "EXPORT POSE",
+                CustomWidth = 120,
+                GetActiveBackColor = () => new Color(0, 100, 0, 255),
+                GetHoverBackColor = () => new Color(0, 150, 0, 255),
+                GetPressedBackColor = () => new Color(175, 210, 175, 255),
+                OnClick = () =>
+                {
+                    var submeshes = Scene.MainModel.MainMesh.Submeshes;
+
+                    InPoseModel toExport = new InPoseModel();
+
+                    foreach (var submesh in submeshes)
+                    {
+                        var get_mesh_vertices = new FlverShaderVertInput[submesh.VertBuffer.VertexCount];
+                        submesh.VertBuffer.GetData<FlverShaderVertInput>(get_mesh_vertices);
+
+                        InPoseSubmesh ipSubmesh = new InPoseSubmesh();
+                        List<InPoseVertex> vertices = new List<InPoseVertex>();
+                        ipSubmesh.Vertices = get_mesh_vertices.Select(v => new InPoseVertex
+                        {
+                            Position = new System.Numerics.Vector3(v.Position.X, v.Position.Y, v.Position.Z),
+                            Normal = new System.Numerics.Vector3(v.Normal.X, v.Normal.Y, v.Normal.Z),
+                            //Binormal = new System.Numerics.Vector3(v.Binormal.X, v.Binormal.Y, v.Binormal.Z),
+                            //Bitangent = new System.Numerics.Vector4(v.Bitangent.X, v.Bitangent.Y, v.Bitangent.Z, v.Bitangent.W),
+                            BoneIndices = new System.Numerics.Vector4(v.BoneIndices.X, v.BoneIndices.Y, v.BoneIndices.Z, v.BoneIndices.W),
+                            BoneWeights = new System.Numerics.Vector4(v.BoneWeights.X, v.BoneWeights.Y, v.BoneWeights.Z, v.BoneWeights.W),
+                            //BoneIndicesBank = new System.Numerics.Vector4(v.BoneIndicesBank.X, v.BoneIndicesBank.Y, v.BoneIndicesBank.Z, v.BoneIndicesBank.W),
+                        }).ToList();
+                        foreach (var fs in submesh.MeshFacesets)
+                        {
+                            ipSubmesh.FaceSets.Add(new InPoseFaceset(fs.Indices));
+                        }
+
+                        toExport.submeshes.Add(ipSubmesh);
+                    }
+
+                    foreach (var boneInfo in Scene.MainModel.SkeletonFlver.FlverSkeleton)
+                    {
+
+                        boneInfo.bone.CurrentMatrix = new InPoseMatrix4x4(boneInfo.CurrentMatrix);
+                        toExport.bones.Add(boneInfo.bone);
+                        
+
+                    }
+
+                    string json = JsonConvert.SerializeObject(toExport);
+                    File.WriteAllText(@"C:\\Users\\codri\\Desktop\\export.json", json);
+
+                }
+            });
 
             Buttons.Add(new TransportButton()
             {
@@ -207,10 +263,8 @@ namespace DSAnimStudio.TaeEditor
 
                     horizontalOffset += (Buttons[i].CustomWidth ?? ButtonSize);
 
-                    
                 }
 
-                
 
                 Buttons[i].Update(MainScreen.Input, this);
             }
@@ -324,7 +378,7 @@ namespace DSAnimStudio.TaeEditor
                         state = prevState = TransportButtonState.Normal;
                     }
 
-                    
+
                 }
 
                 //if (input.LeftClickHeld && !hotkeyPressed)
@@ -397,7 +451,7 @@ namespace DSAnimStudio.TaeEditor
                         (float)Math.Round(Rect.Y + (Rect.Height / 2f) - (txtSize.Y / 2))), fgColor);
                 }
 
-                
+
             }
         }
     }

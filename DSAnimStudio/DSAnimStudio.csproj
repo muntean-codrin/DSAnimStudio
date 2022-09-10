@@ -128,6 +128,7 @@
     <Compile Include="ImguiOSD\Window.Help.cs" />
     <Compile Include="ImguiOSD\Window.Toolbox.cs" />
     <Compile Include="ImGuiRenderer.cs" />
+    <Compile Include="InPoseModel.cs" />
     <Compile Include="NewAnimSkeleton_HKX.cs" />
     <Compile Include="NewChrAsmCfgJson.cs" />
     <Compile Include="NewChrAsmEquipForm.cs">

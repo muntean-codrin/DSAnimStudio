@@ -326,6 +326,7 @@ namespace DSAnimStudio
             //public Matrix? NubCurrentMatrix = null;
 
             public List<FlverBoneInfo> ChildBones = new List<FlverBoneInfo>();
+            public InPoseBone bone;
 
             //public float Length = 1.0f;
             //public IDbgPrim BonePrim;
@@ -453,6 +454,14 @@ namespace DSAnimStudio
                 {
                     Category = DbgPrimCategory.FlverBoneBoundingBox,
                 };
+
+                this.bone = new InPoseBone();
+                this.bone.Name = bone.Name;
+                this.bone.ParentIndex = bone.ParentIndex;
+                //this.bone.Rotation = bone.Rotation;
+                //this.bone.Scale = bone.Scale;
+                //this.bone.Translation = bone.Translation;
+                this.bone.ReferenceMatrix = new InPoseMatrix4x4(ReferenceMatrix);
 
             }
 
