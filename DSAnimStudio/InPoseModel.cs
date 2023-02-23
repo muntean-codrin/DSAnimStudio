@@ -5,6 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+public class AnimationExportData
+{
+    public List<InPoseKeyframe> keyframes = new List<InPoseKeyframe>();
+    public List<InPoseBone> bones = new List<InPoseBone>();
+}
+
+public class InPoseKeyframe
+{
+    public int frame;
+    public List<InPoseBoneDisplacement> boneDisplacements = new List<InPoseBoneDisplacement>();
+    public InPoseKeyframe(int frame)
+    {
+        this.frame = frame;
+    }
+}
+
 
 public class InPoseModel
 {
@@ -48,6 +64,20 @@ public class InPoseBone
     //public System.Numerics.Vector3 Scale;
     public InPoseMatrix4x4 ReferenceMatrix;
     public InPoseMatrix4x4 CurrentMatrix;
+}
+
+public class InPoseBoneDisplacement
+{
+    public string Name;
+    public short ParentIndex;
+    public InPoseMatrix4x4 CurrentMatrix;
+
+    public InPoseBoneDisplacement(string Name, short ParentIndex, InPoseMatrix4x4 CurrentMatrix)
+    {
+        this.Name = Name;
+        this.ParentIndex = ParentIndex;
+        this.CurrentMatrix = CurrentMatrix;
+    }
 }
 
 public class InPoseMatrix4x4

@@ -30,7 +30,80 @@ namespace DSAnimStudio.TaeEditor
         {
             MainScreen = mainScreen;
 
-            
+            Buttons.Add(new TransportButton()
+            {
+                GetDebugText = () => "EXPORT ANIMATION",
+                CustomWidth = 120,
+                GetActiveBackColor = () => new Color(0, 100, 0, 255),
+                GetHoverBackColor = () => new Color(0, 150, 0, 255),
+                GetPressedBackColor = () => new Color(175, 210, 175, 255),
+                OnClick = () =>
+                {
+                    #region ResetAnimation
+                    //PlaybackCursor.IsPlaying = false;
+                    //PlaybackCursor.CurrentTime = 0;
+                    //MainScreen.Graph?.ViewportInteractor?.CurrentModel?.AnimContainer?.ResetAll();
+                    //PlaybackCursor.StartTime = 0;
+                    //MainScreen.Graph.ViewportInteractor.OnScrubFrameChange(forceCustomTimeDelta: 0);
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.AnimContainer.ResetRootMotion();
+
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel0?.AnimContainer?.ResetRootMotion();
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel1?.AnimContainer?.ResetRootMotion();
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel2?.AnimContainer?.ResetRootMotion();
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel3?.AnimContainer?.ResetRootMotion();
+
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel0?.AnimContainer?.ResetRootMotion();
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel1?.AnimContainer?.ResetRootMotion();
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel2?.AnimContainer?.ResetRootMotion();
+                    //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel3?.AnimContainer?.ResetRootMotion();
+
+                    //MainScreen.Graph.ViewportInteractor.ResetRootMotion();
+                    //MainScreen.Graph.ScrollToPlaybackCursor(1);
+                    //PlaybackCursor.IgnoreCurrentRelativeScrub();
+                    #endregion
+                    AnimationExportData data = new AnimationExportData();
+
+                    foreach (var boneInfo in Scene.MainModel.SkeletonFlver.FlverSkeleton)
+                    {
+
+                        boneInfo.bone.CurrentMatrix = new InPoseMatrix4x4(boneInfo.CurrentMatrix);
+                        data.bones.Add(boneInfo.bone);
+
+                    }
+
+
+                    int lastFrame = (int)PlaybackCursor.MaxFrame;
+                    int currentFrame = 0;
+                    do
+                    {
+                        currentFrame = (int)PlaybackCursor.CurrentFrame;
+
+
+                        var keyframe = new InPoseKeyframe(currentFrame);
+                        foreach (var boneInfo in Scene.MainModel.SkeletonFlver.FlverSkeleton)
+                        {
+
+                            var curentMatrix = new InPoseMatrix4x4(boneInfo.CurrentMatrix);
+                            keyframe.boneDisplacements.Add(new InPoseBoneDisplacement(boneInfo.bone.Name, boneInfo.bone.ParentIndex, curentMatrix));
+                        }
+
+                        data.keyframes.Add(keyframe);
+                        string json_keyframe = JsonConvert.SerializeObject(keyframe);
+                        File.WriteAllText($@"C:\\Users\\codri\\Desktop\\Animation\\frame_{currentFrame}.json", json_keyframe);
+
+
+                        MainScreen.TransportNextFrame();
+                    } while (currentFrame != lastFrame);
+
+
+                    string json = JsonConvert.SerializeObject(data);
+                    File.WriteAllText(@"C:\\Users\\codri\\Desktop\\animation_export.json", json);
+
+                }
+
+            });
+
+
             Buttons.Add(new TransportButton()
             {
                 GetDebugText = () => "EXPORT POSE",
@@ -40,7 +113,28 @@ namespace DSAnimStudio.TaeEditor
                 GetPressedBackColor = () => new Color(175, 210, 175, 255),
                 OnClick = () =>
                 {
-                    var submeshes = Scene.MainModel.MainMesh.Submeshes;
+                    var submeshes = new List<FlverSubmeshRenderer>();
+                    if (Scene.MainModel.IS_PLAYER)
+                    {
+                        List<NewMesh> armorMeshes = new List<NewMesh>();
+                        var chr = Scene.MainModel.ChrAsm;
+                        if (chr.ArmsMesh?.Submeshes != null)
+                            submeshes.AddRange(chr.ArmsMesh.Submeshes);
+                        if (chr.BodyMesh?.Submeshes != null)
+                            submeshes.AddRange(chr.BodyMesh.Submeshes);
+                        if (chr.FacegenMesh?.Submeshes != null)
+                            submeshes.AddRange(chr.FacegenMesh.Submeshes);
+                        if (chr.FaceMesh?.Submeshes != null)
+                            submeshes.AddRange(chr.FaceMesh.Submeshes);
+                        if (chr.HeadMesh?.Submeshes != null)
+                            submeshes.AddRange(chr.HeadMesh.Submeshes);
+                        if (chr.LegsMesh?.Submeshes != null)
+                            submeshes.AddRange(chr.LegsMesh.Submeshes);
+                    }
+                    else
+                    {
+                        submeshes = Scene.MainModel.MainMesh.Submeshes;
+                    }
 
                     InPoseModel toExport = new InPoseModel();
 
@@ -74,7 +168,7 @@ namespace DSAnimStudio.TaeEditor
 
                         boneInfo.bone.CurrentMatrix = new InPoseMatrix4x4(boneInfo.CurrentMatrix);
                         toExport.bones.Add(boneInfo.bone);
-                        
+
 
                     }
 
