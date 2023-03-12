@@ -9,15 +9,18 @@ public class AnimationExportData
 {
     public List<InPoseKeyframe> keyframes = new List<InPoseKeyframe>();
     public List<InPoseBone> bones = new List<InPoseBone>();
+    public double timeLength;
 }
 
 public class InPoseKeyframe
 {
     public int frame;
+    public double time;
     public List<InPoseBoneDisplacement> boneDisplacements = new List<InPoseBoneDisplacement>();
-    public InPoseKeyframe(int frame)
+    public InPoseKeyframe(int frame, double time)
     {
         this.frame = frame;
+        this.time = time;
     }
 }
 

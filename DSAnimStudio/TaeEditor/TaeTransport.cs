@@ -26,9 +26,84 @@ namespace DSAnimStudio.TaeEditor
         int ButtonSeparatorThickness = 2;
         int ButtonSize = 22;
 
+        AnimationExportData data_to_export = new AnimationExportData();
+
         public TaeTransport(TaeEditorScreen mainScreen)
         {
             MainScreen = mainScreen;
+
+            Buttons.Add(new TransportButton()
+            {
+                GetDebugText = () => "EXPORT ANIMATION 2",
+                CustomWidth = 120,
+                GetActiveBackColor = () => new Color(0, 100, 0, 255),
+                GetHoverBackColor = () => new Color(0, 150, 0, 255),
+                GetPressedBackColor = () => new Color(175, 210, 175, 255),
+                OnClick = () =>
+                {
+                    if (data_to_export.bones?.Count == 0)
+                        foreach (var boneInfo in Scene.MainModel.SkeletonFlver.FlverSkeleton)
+                        {
+
+                            boneInfo.bone.CurrentMatrix = new InPoseMatrix4x4(boneInfo.CurrentMatrix);
+                            data_to_export.bones.Add(boneInfo.bone);
+
+                        }
+
+                    data_to_export.timeLength = PlaybackCursor.MaxTime;
+
+                    int lastFrame = (int)PlaybackCursor.MaxFrame;
+                    var currentFrame = (int)PlaybackCursor.CurrentFrame;
+                    var currentTime = PlaybackCursor.CurrentTime;
+
+
+                    var keyframe = new InPoseKeyframe(currentFrame, currentTime);
+                    foreach (var boneInfo in Scene.MainModel.SkeletonFlver.FlverSkeleton)
+                    {
+
+                        var curentMatrix = new InPoseMatrix4x4(boneInfo.CurrentMatrix);
+                        keyframe.boneDisplacements.Add(new InPoseBoneDisplacement(boneInfo.bone.Name, boneInfo.bone.ParentIndex, curentMatrix));
+                    }
+
+                    
+
+                    data_to_export.keyframes.Add(keyframe);
+
+                    MainScreen.TransportNextFrame();
+
+                    if (currentFrame == lastFrame)
+                    {
+                        string json = JsonConvert.SerializeObject(data_to_export);
+                        File.WriteAllText(@"C:\\Users\\codri\\Desktop\\animation_export.json", json);
+
+                        #region ResetAnimation
+                        //PlaybackCursor.IsPlaying = false;
+                        //PlaybackCursor.CurrentTime = 0;
+                        //MainScreen.Graph?.ViewportInteractor?.CurrentModel?.AnimContainer?.ResetAll();
+                        //PlaybackCursor.StartTime = 0;
+                        //MainScreen.Graph.ViewportInteractor.OnScrubFrameChange(forceCustomTimeDelta: 0);
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.AnimContainer.ResetRootMotion();
+
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel0?.AnimContainer?.ResetRootMotion();
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel1?.AnimContainer?.ResetRootMotion();
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel2?.AnimContainer?.ResetRootMotion();
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.RightWeaponModel3?.AnimContainer?.ResetRootMotion();
+
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel0?.AnimContainer?.ResetRootMotion();
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel1?.AnimContainer?.ResetRootMotion();
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel2?.AnimContainer?.ResetRootMotion();
+                        //MainScreen.Graph.ViewportInteractor.CurrentModel.ChrAsm?.LeftWeaponModel3?.AnimContainer?.ResetRootMotion();
+
+                        //MainScreen.Graph.ViewportInteractor.ResetRootMotion();
+                        //MainScreen.Graph.ScrollToPlaybackCursor(1);
+                        //PlaybackCursor.IgnoreCurrentRelativeScrub();
+                        #endregion
+                        data_to_export = new AnimationExportData();
+                        data_to_export.timeLength = PlaybackCursor.MaxTime;
+                    }
+
+                }
+            });
 
             Buttons.Add(new TransportButton()
             {
@@ -77,9 +152,11 @@ namespace DSAnimStudio.TaeEditor
                     do
                     {
                         currentFrame = (int)PlaybackCursor.CurrentFrame;
+                        var currentTime = PlaybackCursor.CurrentTime;
+                        
 
 
-                        var keyframe = new InPoseKeyframe(currentFrame);
+                        var keyframe = new InPoseKeyframe(currentFrame, currentTime);
                         foreach (var boneInfo in Scene.MainModel.SkeletonFlver.FlverSkeleton)
                         {
 
